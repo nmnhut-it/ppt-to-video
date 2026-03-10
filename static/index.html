@@ -475,6 +475,9 @@ textarea.narration-text:focus {
 <div class="header">
   <h1>Slide <span>→</span> Video</h1>
   <span class="subtitle">PPT narration pipeline</span>
+  <div style="margin-left:auto">
+    <button class="btn btn-ghost btn-small" onclick="clearSavedState()">New Session</button>
+  </div>
 </div>
 
 <div class="stepper" id="stepper">
@@ -680,7 +683,7 @@ function buildNarrationPanel() {
       </div>
       <textarea class="narration-text" id="narr-text-${s.slide_number}"
         placeholder="Click Generate or type narration manually..."
-        oninput="state.narrations[${s.slide_number}] = this.value"
+        oninput="state.narrations[${s.slide_number}] = this.value; saveState()"
       >${esc(state.narrations[s.slide_number] || '')}</textarea>
     </div>
   `).join('');
@@ -838,6 +841,62 @@ function toast(msg, type = '') {
   t.textContent = msg;
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 4000);
+}
+
+// --- LocalStorage Persistence ---
+const STORAGE_KEY = 'ppt-to-video-state';
+
+function saveState() {
+  const data = {
+    slides: state.slides,
+    selected: [...state.selected],
+    narrations: state.narrations,
+    audioReady: [...state.audioReady],
+    currentStep: state.currentStep,
+    completedSteps: [...state.completedSteps],
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadState() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (!raw) return false;
+  try {
+    const data = JSON.parse(raw);
+    if (!data.slides || !data.slides.length) return false;
+    state.slides = data.slides;
+    state.selected = new Set(data.selected || []);
+    state.narrations = data.narrations || {};
+    state.audioReady = new Set(data.audioReady || []);
+    state.completedSteps = new Set(data.completedSteps || []);
+    state.currentStep = data.currentStep || 0;
+    return true;
+  } catch { return false; }
+}
+
+function clearSavedState() {
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
+// Auto-save after key actions
+const _origCompleteStep = completeStep;
+completeStep = function(n) { _origCompleteStep(n); saveState(); };
+
+const _origGenNarr = generateNarration;
+generateNarration = async function(num) { await _origGenNarr(num); saveState(); };
+
+const _origUseNotes = useNotes;
+useNotes = function(num) { _origUseNotes(num); saveState(); };
+
+const _origGenAudio = generateAudio;
+generateAudio = async function(num) { await _origGenAudio(num); saveState(); };
+
+// Restore on page load
+if (loadState()) {
+  buildSlidesGrid();
+  goToStep(state.currentStep);
+  toast('Session restored', 'success');
 }
 </script>
 </body>
