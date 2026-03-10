@@ -43,26 +43,42 @@ def extract_text_content(pptx_path: str) -> list[dict]:
     return slides_data
 
 
-def export_slide_images(pptx_path: str) -> list[Path]:
-    """Export slides as images using LibreOffice (fallback: placeholder)."""
-    import subprocess
+def export_slide_images_com(pptx_path: str) -> list[Path]:
+    """Export slides as PNG using PowerPoint COM automation."""
+    import comtypes.client
 
     pptx_abs = str(Path(pptx_path).resolve())
+    out_dir = str(SLIDES_DIR.resolve())
     SLIDES_DIR.mkdir(parents=True, exist_ok=True)
 
-    # Try LibreOffice conversion
-    try:
-        subprocess.run(
-            ["libreoffice", "--headless", "--convert-to", "png",
-             "--outdir", str(SLIDES_DIR.resolve()), pptx_abs],
-            check=True, capture_output=True, timeout=120,
-        )
-        return sorted(SLIDES_DIR.glob("*.png"))
-    except (FileNotFoundError, subprocess.CalledProcessError):
-        pass
+    ppt = comtypes.client.CreateObject("PowerPoint.Application")
+    ppt.Visible = 1
+    presentation = ppt.Presentations.Open(pptx_abs, WithWindow=False)
 
-    # Fallback: try python-pptx + pillow to create simple slide images
-    print("LibreOffice not found. Creating placeholder slide images.")
+    for i, slide in enumerate(presentation.Slides, start=1):
+        out_path = str(Path(out_dir) / f"slide_{i:03d}.png")
+        slide.Export(out_path, "PNG", 1920, 1080)
+
+    presentation.Close()
+    ppt.Quit()
+    return sorted(SLIDES_DIR.glob("*.png"))
+
+
+def export_slide_images(pptx_path: str) -> list[Path]:
+    """Export slides as images. Tries COM (PowerPoint), then placeholder."""
+    SLIDES_DIR.mkdir(parents=True, exist_ok=True)
+
+    # Try PowerPoint COM automation
+    try:
+        images = export_slide_images_com(pptx_path)
+        if images:
+            print(f"Exported {len(images)} slides via PowerPoint COM")
+            return images
+    except Exception as e:
+        print(f"PowerPoint COM failed: {e}")
+
+    # Fallback: placeholder images
+    print("Creating placeholder slide images.")
     prs = Presentation(pptx_path)
     images = []
     width = int(prs.slide_width.inches * 96)
