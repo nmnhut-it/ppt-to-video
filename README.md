@@ -17,7 +17,16 @@ Turn PowerPoint slides into narrated videos. Upload a `.pptx` file, generate Vie
 - **Python 3.11+**
 - **FFmpeg** — [download here](https://ffmpeg.org/download.html), make sure `ffmpeg` is in your PATH
 - **Claude Code** — [install here](https://docs.anthropic.com/en/docs/claude-code) (for AI narration generation)
-- **Gemini API key** — free at [Google AI Studio](https://aistudio.google.com/apikey)
+- **Gemini API key** — free, see below
+
+### Get a Gemini API Key (free)
+
+1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+2. Sign in with your Google account
+3. Click **"Create API key"**
+4. Copy the key (starts with `AIza...`)
+
+The free tier is generous — no credit card needed.
 
 ### Install
 
