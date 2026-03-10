@@ -673,9 +673,10 @@ function buildNarrationPanel() {
     <div class="narration-item" id="narr-${s.slide_number}">
       <div class="narration-header">
         <h4><span class="slide-num">#${s.slide_number}</span> ${esc(s.title || s.body.slice(0, 40))}</h4>
-        <button class="btn btn-ghost btn-small" onclick="generateNarration(${s.slide_number})">
-          Generate
-        </button>
+        <div style="display:flex;gap:6px">
+          ${s.notes ? `<button class="btn btn-ghost btn-small" onclick="useNotes(${s.slide_number})">Use notes</button>` : ''}
+          <button class="btn btn-ghost btn-small" onclick="generateNarration(${s.slide_number})">Generate</button>
+        </div>
       </div>
       <textarea class="narration-text" id="narr-text-${s.slide_number}"
         placeholder="Click Generate or type narration manually..."
@@ -683,6 +684,14 @@ function buildNarrationPanel() {
       >${esc(state.narrations[s.slide_number] || '')}</textarea>
     </div>
   `).join('');
+}
+
+function useNotes(num) {
+  const slide = state.slides.find(s => s.slide_number === num);
+  if (!slide || !slide.notes) return;
+  state.narrations[num] = slide.notes;
+  document.getElementById(`narr-text-${num}`).value = slide.notes;
+  toast(`Slide ${num}: using speaker notes`, 'success');
 }
 
 async function generateNarration(num) {
