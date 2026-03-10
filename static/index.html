@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slide → Video</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --bg: #0a0a0c;
+  --surface: #141418;
+  --surface-2: #1c1c22;
+  --surface-3: #24242c;
+  --border: #2a2a34;
+  --border-hover: #3a3a48;
+  --text: #e8e6e3;
+  --text-dim: #8a8a96;
+  --text-muted: #5a5a66;
+  --amber: #f0a030;
+  --amber-dim: #c07818;
+  --amber-glow: rgba(240, 160, 48, 0.12);
+  --green: #34d399;
+  --green-dim: rgba(52, 211, 153, 0.15);
+  --red: #f87171;
+  --red-dim: rgba(248, 113, 113, 0.15);
+  --blue: #60a5fa;
+  --radius: 10px;
+  --font: 'Be Vietnam Pro', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* --- Header --- */
+.header {
+  border-bottom: 1px solid var(--border);
+  padding: 16px 32px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--surface);
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.header h1 span { color: var(--amber); }
+
+.header .subtitle {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* --- Stepper --- */
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 20px 32px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.step-indicator:hover { color: var(--text-dim); }
+
+.step-indicator.active {
+  background: var(--amber-glow);
+  color: var(--amber);
+}
+
+.step-indicator.done {
+  color: var(--green);
+}
+
+.step-indicator .num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1.5px solid var(--border);
+  flex-shrink: 0;
+}
+
+.step-indicator.active .num {
+  border-color: var(--amber);
+  background: var(--amber);
+  color: var(--bg);
+}
+
+.step-indicator.done .num {
+  border-color: var(--green);
+  background: var(--green);
+  color: var(--bg);
+}
+
+.step-connector {
+  width: 24px;
+  height: 1px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* --- Main Layout --- */
+.main { padding: 28px 32px; max-width: 1200px; margin: 0 auto; }
+
+.panel {
+  display: none;
+  animation: fadeIn 0.25s ease;
+}
+
+.panel.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Upload Panel --- */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 64px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: var(--surface);
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--amber);
+  background: var(--amber-glow);
+}
+
+.drop-zone .icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.drop-zone h3 {
+  font-size: 16px;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.drop-zone p {
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* --- Slide Cards --- */
+.slides-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.slide-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  transition: border-color 0.2s;
+}
+
+.slide-card:hover { border-color: var(--border-hover); }
+
+.slide-card.selected { border-color: var(--amber-dim); background: var(--amber-glow); }
+
+.slide-card input[type="checkbox"] {
+  accent-color: var(--amber);
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.slide-num {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-muted);
+  background: var(--surface-3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.slide-content { flex: 1; min-width: 0; }
+
+.slide-title {
+  font-weight: 600;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.slide-body {
+  font-size: 13px;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  max-height: 80px;
+  overflow: hidden;
+}
+
+.slide-notes {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+/* --- Narration Panel --- */
+.narration-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+}
+
+.narration-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.narration-header h4 {
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+textarea.narration-text {
+  width: 100%;
+  min-height: 80px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+textarea.narration-text:focus {
+  outline: none;
+  border-color: var(--amber-dim);
+}
+
+/* --- Audio Panel --- */
+.audio-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.audio-item .info { flex: 1; }
+
+.audio-item .info h4 {
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.audio-item .info p {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.audio-item audio {
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.audio-status {
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-weight: 500;
+}
+
+.audio-status.pending { background: var(--surface-3); color: var(--text-muted); }
+.audio-status.generating { background: var(--amber-glow); color: var(--amber); }
+.audio-status.done { background: var(--green-dim); color: var(--green); }
+.audio-status.error { background: var(--red-dim); color: var(--red); }
+
+/* --- Buttons --- */
+.btn {
+  padding: 9px 20px;
+  border-radius: 8px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--amber);
+  color: var(--bg);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #f5b040;
+  box-shadow: 0 0 20px var(--amber-glow);
+}
+
+.btn-secondary {
+  background: var(--surface-3);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.btn-small {
+  padding: 5px 12px;
+  font-size: 12px;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+/* --- Toolbar --- */
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  gap: 12px;
+}
+
+.toolbar-left { display: flex; align-items: center; gap: 8px; }
+.toolbar h2 { font-size: 16px; font-weight: 600; }
+.toolbar .count {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-family: var(--mono);
+}
+
+/* --- Video Panel --- */
+.video-result {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  text-align: center;
+}
+
+.video-result video {
+  max-width: 100%;
+  border-radius: 8px;
+  margin: 16px 0;
+  background: #000;
+}
+
+/* --- Spinner --- */
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--amber);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* --- Toast --- */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  padding: 12px 20px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text);
+  z-index: 1000;
+  animation: slideUp 0.3s ease;
+  max-width: 360px;
+}
+
+.toast.error { border-color: var(--red); color: var(--red); }
+.toast.success { border-color: var(--green); color: var(--green); }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Select All --- */
+.select-all-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: var(--surface-2);
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+
+.select-all-bar input { accent-color: var(--amber); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Slide <span>→</span> Video</h1>
+  <span class="subtitle">PPT narration pipeline</span>
+</div>
+
+<div class="stepper" id="stepper">
+  <div class="step-indicator active" data-step="0" onclick="goToStep(0)">
+    <span class="num">1</span> Upload
+  </div>
+  <div class="step-connector"></div>
+  <div class="step-indicator" data-step="1" onclick="goToStep(1)">
+    <span class="num">2</span> Slides
+  </div>
+  <div class="step-connector"></div>
+  <div class="step-indicator" data-step="2" onclick="goToStep(2)">
+    <span class="num">3</span> Narration
+  </div>
+  <div class="step-connector"></div>
+  <div class="step-indicator" data-step="3" onclick="goToStep(3)">
+    <span class="num">4</span> Audio
+  </div>
+  <div class="step-connector"></div>
+  <div class="step-indicator" data-step="4" onclick="goToStep(4)">
+    <span class="num">5</span> Video
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- Step 0: Upload -->
+  <div class="panel active" id="panel-0">
+    <div class="drop-zone" id="dropZone">
+      <div class="icon">📎</div>
+      <h3>Drop your .pptx file here</h3>
+      <p>or click to browse</p>
+      <input type="file" id="fileInput" accept=".pptx,.ppt" hidden>
+    </div>
+  </div>
+
+  <!-- Step 1: Slide Selection -->
+  <div class="panel" id="panel-1">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2>Select Slides</h2>
+        <span class="count" id="slideCount"></span>
+      </div>
+      <div>
+        <button class="btn btn-primary" onclick="completeStep(1)">Next →</button>
+      </div>
+    </div>
+    <div class="select-all-bar">
+      <input type="checkbox" id="selectAll" checked onchange="toggleSelectAll()">
+      <label for="selectAll">Select all</label>
+    </div>
+    <div class="slides-grid" id="slidesGrid"></div>
+  </div>
+
+  <!-- Step 2: Narration -->
+  <div class="panel" id="panel-2">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2>Narration Scripts</h2>
+        <span class="count" id="narrationCount"></span>
+      </div>
+      <div>
+        <button class="btn btn-secondary" onclick="generateAllNarrations()">Generate All</button>
+        <button class="btn btn-primary" onclick="completeStep(2)">Next →</button>
+      </div>
+    </div>
+    <div id="narrationList"></div>
+  </div>
+
+  <!-- Step 3: Audio -->
+  <div class="panel" id="panel-3">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2>Audio Preview</h2>
+        <span class="count" id="audioCount"></span>
+      </div>
+      <div>
+        <button class="btn btn-secondary" onclick="generateAllAudio()">Generate All</button>
+        <button class="btn btn-primary" onclick="completeStep(3)">Next →</button>
+      </div>
+    </div>
+    <div id="audioList"></div>
+  </div>
+
+  <!-- Step 4: Video -->
+  <div class="panel" id="panel-4">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <h2>Compose Video</h2>
+      </div>
+      <div>
+        <button class="btn btn-primary" id="composeBtn" onclick="composeVideo()">Compose Video</button>
+      </div>
+    </div>
+    <div class="video-result" id="videoResult">
+      <p style="color: var(--text-muted)">Click "Compose Video" to generate the final MP4.</p>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const state = {
+  slides: [],
+  selected: new Set(),
+  narrations: {},
+  audioReady: new Set(),
+  currentStep: 0,
+  completedSteps: new Set(),
+};
+
+// --- Step Navigation ---
+function goToStep(n) {
+  if (n > state.currentStep + 1) return;
+  state.currentStep = n;
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('active', i === n));
+  document.querySelectorAll('.step-indicator').forEach((s, i) => {
+    s.classList.toggle('active', i === n);
+    s.classList.toggle('done', state.completedSteps.has(i));
+  });
+  if (n === 2) buildNarrationPanel();
+  if (n === 3) buildAudioPanel();
+}
+
+function completeStep(n) {
+  state.completedSteps.add(n);
+  goToStep(n + 1);
+}
+
+// --- Upload ---
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+async function handleFile(file) {
+  dropZone.innerHTML = '<div class="spinner"></div><p style="margin-top:12px;color:var(--text-dim)">Extracting slides...</p>';
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const res = await fetch('/api/upload', { method: 'POST', body: form });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    state.slides = data.slides;
+    state.selected = new Set(data.slides.map(s => s.slide_number));
+    buildSlidesGrid();
+    completeStep(0);
+  } catch (e) {
+    toast('Upload failed: ' + e.message, 'error');
+    dropZone.innerHTML = '<div class="icon">📎</div><h3>Drop your .pptx file here</h3><p>or click to browse</p>';
+  }
+}
+
+// --- Slides Grid ---
+function buildSlidesGrid() {
+  const grid = document.getElementById('slidesGrid');
+  document.getElementById('slideCount').textContent = `${state.slides.length} slides`;
+  grid.innerHTML = state.slides.map(s => `
+    <div class="slide-card ${state.selected.has(s.slide_number) ? 'selected' : ''}" id="card-${s.slide_number}">
+      <input type="checkbox" ${state.selected.has(s.slide_number) ? 'checked' : ''}
+        onchange="toggleSlide(${s.slide_number}, this.checked)">
+      <span class="slide-num">#${s.slide_number}</span>
+      <div class="slide-content">
+        <div class="slide-title">${esc(s.title || '(no title)')}</div>
+        <div class="slide-body">${esc(s.body)}</div>
+        ${s.notes ? `<div class="slide-notes">📝 ${esc(s.notes.slice(0, 150))}</div>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function toggleSlide(num, checked) {
+  if (checked) state.selected.add(num); else state.selected.delete(num);
+  document.getElementById(`card-${num}`).classList.toggle('selected', checked);
+  document.getElementById('selectAll').checked = state.selected.size === state.slides.length;
+}
+
+function toggleSelectAll() {
+  const all = document.getElementById('selectAll').checked;
+  state.slides.forEach(s => {
+    if (all) state.selected.add(s.slide_number); else state.selected.delete(s.slide_number);
+  });
+  buildSlidesGrid();
+}
+
+// --- Narration ---
+function buildNarrationPanel() {
+  const list = document.getElementById('narrationList');
+  const selected = state.slides.filter(s => state.selected.has(s.slide_number));
+  document.getElementById('narrationCount').textContent = `${selected.length} slides`;
+  list.innerHTML = selected.map(s => `
+    <div class="narration-item" id="narr-${s.slide_number}">
+      <div class="narration-header">
+        <h4><span class="slide-num">#${s.slide_number}</span> ${esc(s.title || s.body.slice(0, 40))}</h4>
+        <button class="btn btn-ghost btn-small" onclick="generateNarration(${s.slide_number})">
+          Generate
+        </button>
+      </div>
+      <textarea class="narration-text" id="narr-text-${s.slide_number}"
+        placeholder="Click Generate or type narration manually..."
+        oninput="state.narrations[${s.slide_number}] = this.value"
+      >${esc(state.narrations[s.slide_number] || '')}</textarea>
+    </div>
+  `).join('');
+}
+
+async function generateNarration(num) {
+  const slide = state.slides.find(s => s.slide_number === num);
+  const btn = document.querySelector(`#narr-${num} .btn`);
+  btn.innerHTML = '<span class="spinner"></span>';
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/narration/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(slide),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    state.narrations[num] = data.narration;
+    document.getElementById(`narr-text-${num}`).value = data.narration;
+    toast(`Slide ${num} narration ready`, 'success');
+  } catch (e) {
+    toast(`Slide ${num}: ${e.message}`, 'error');
+  }
+  btn.innerHTML = 'Generate';
+  btn.disabled = false;
+}
+
+async function generateAllNarrations() {
+  const selected = state.slides.filter(s => state.selected.has(s.slide_number));
+  for (const s of selected) {
+    if (!state.narrations[s.slide_number]) {
+      await generateNarration(s.slide_number);
+    }
+  }
+}
+
+// --- Audio ---
+function buildAudioPanel() {
+  const list = document.getElementById('audioList');
+  const selected = state.slides.filter(s => state.selected.has(s.slide_number));
+  document.getElementById('audioCount').textContent = `${selected.length} slides`;
+  list.innerHTML = selected.map(s => {
+    const narr = state.narrations[s.slide_number];
+    const hasAudio = state.audioReady.has(s.slide_number);
+    return `
+    <div class="audio-item" id="audio-${s.slide_number}">
+      <span class="slide-num">#${s.slide_number}</span>
+      <div class="info">
+        <h4>${esc(s.title || s.body.slice(0, 40))}</h4>
+        <p>${narr ? narr.slice(0, 80) + '...' : 'No narration yet'}</p>
+      </div>
+      <span class="audio-status ${hasAudio ? 'done' : 'pending'}" id="audio-status-${s.slide_number}">
+        ${hasAudio ? 'Ready' : 'Pending'}
+      </span>
+      <div id="audio-player-${s.slide_number}">
+        ${hasAudio ? `<audio controls src="/api/audio/${s.slide_number}"></audio>` : ''}
+      </div>
+      <button class="btn btn-ghost btn-small" onclick="generateAudio(${s.slide_number})" ${narr ? '' : 'disabled'}>
+        Generate
+      </button>
+    </div>`;
+  }).join('');
+}
+
+async function generateAudio(num) {
+  const narration = state.narrations[num];
+  if (!narration) { toast('No narration for slide ' + num, 'error'); return; }
+
+  const status = document.getElementById(`audio-status-${num}`);
+  status.className = 'audio-status generating';
+  status.textContent = 'Generating...';
+
+  try {
+    const res = await fetch('/api/audio/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slide_number: num, narration }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    state.audioReady.add(num);
+    status.className = 'audio-status done';
+    status.textContent = `${data.duration}s`;
+    document.getElementById(`audio-player-${num}`).innerHTML =
+      `<audio controls src="${data.audio_url}?t=${Date.now()}"></audio>`;
+    toast(`Slide ${num} audio ready`, 'success');
+  } catch (e) {
+    status.className = 'audio-status error';
+    status.textContent = 'Error';
+    toast(`Slide ${num}: ${e.message}`, 'error');
+  }
+}
+
+async function generateAllAudio() {
+  const selected = state.slides.filter(s => state.selected.has(s.slide_number));
+  for (const s of selected) {
+    if (!state.audioReady.has(s.slide_number) && state.narrations[s.slide_number]) {
+      await generateAudio(s.slide_number);
+    }
+  }
+}
+
+// --- Video ---
+async function composeVideo() {
+  const btn = document.getElementById('composeBtn');
+  const result = document.getElementById('videoResult');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Composing...';
+  result.innerHTML = '<p style="color:var(--text-dim)">Composing video with FFmpeg...</p>';
+
+  const slides = [...state.audioReady].sort((a, b) => a - b);
+  try {
+    const res = await fetch('/api/video/compose', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slides }),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const data = await res.json();
+    result.innerHTML = `
+      <video controls width="720" src="${data.video_url}?t=${Date.now()}"></video>
+      <div style="margin-top:16px">
+        <a href="/api/video/download" class="btn btn-primary" download>Download MP4</a>
+      </div>
+    `;
+    toast('Video ready!', 'success');
+    state.completedSteps.add(4);
+  } catch (e) {
+    result.innerHTML = `<p style="color:var(--red)">Error: ${esc(e.message)}</p>`;
+    toast('Compose failed', 'error');
+  }
+  btn.disabled = false;
+  btn.innerHTML = 'Compose Video';
+}
+
+// --- Utils ---
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function toast(msg, type = '') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 4000);
+}
+</script>
+</body>
+</html>
