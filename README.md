@@ -1,71 +1,72 @@
 # PPT to Video
 
-Turn PowerPoint slides into narrated videos. Upload a `.pptx` file, generate Vietnamese narration, convert to speech, and export as MP4.
+Turn your PowerPoint presentations into narrated videos — with AI-generated Vietnamese narration and natural-sounding speech.
 
-## How It Works
+## What It Does
 
-1. **Upload** your `.pptx` file
-2. **Pick slides** you want in the video
-3. **Write narration** — auto-generate with AI, use your speaker notes, or type manually
-4. **Generate audio** — text-to-speech via Google Gemini
-5. **Export video** — slides + audio combined into a single MP4
+Upload a `.pptx` file, and the app walks you through 5 simple steps:
 
-## Setup
+1. **Upload** — drag and drop your PowerPoint file
+2. **Pick slides** — choose which slides to include
+3. **Narration** — let AI write a script, use your speaker notes, or type your own
+4. **Audio** — convert the narration to natural speech
+5. **Download** — get your finished MP4 video
 
-### Prerequisites
+## Narration Options
 
-- **Python 3.11+**
-- **FFmpeg** — [download here](https://ffmpeg.org/download.html), make sure `ffmpeg` is in your PATH
-- **Claude Code** — [install here](https://docs.anthropic.com/en/docs/claude-code) (for AI narration generation)
-- **Gemini API key** — free, see below
+| Option | What it does | Best for |
+|--------|-------------|----------|
+| **Use notes** | Uses the speaker notes you already wrote in PowerPoint | You already have a script ready |
+| **Generate** | AI writes a narration based on your slide content | You want a quick draft |
+| **Manual** | You type the narration yourself | Full control over every word |
 
-### Get a Gemini API Key (free)
+You can mix and match — use notes for some slides, generate for others, and edit anything before creating audio.
 
-1. Go to [Google AI Studio](https://aistudio.google.com/apikey)
+## Requirements
+
+You'll need to install a few things before using the app. If you're not sure how, ask a developer friend or follow the links below.
+
+- **Microsoft PowerPoint** — must be installed on your computer (used to export slide images)
+- **Python 3.11 or newer** — [download here](https://www.python.org/downloads/) (check "Add to PATH" during install)
+- **FFmpeg** — for video creation. Open a terminal and run: `winget install Gyan.FFmpeg`, then restart your terminal
+- **Claude Code** — [install guide](https://docs.anthropic.com/en/docs/claude-code) (powers the AI narration)
+- **Gemini API key** — free, follow the steps below
+
+### How to Get a Gemini API Key (free)
+
+1. Open [Google AI Studio](https://aistudio.google.com/apikey)
 2. Sign in with your Google account
 3. Click **"Create API key"**
-4. Copy the key (starts with `AIza...`)
+4. Copy the key — it looks like `AIzaSy...`
 
-The free tier is generous — no credit card needed.
+No credit card needed. The free plan is more than enough for personal use.
 
-### Install
+## Installation
+
+Open a terminal (Command Prompt or PowerShell) and run these commands one by one:
 
 ```bash
 git clone https://github.com/nmnhut-it/ppt-to-video.git
 cd ppt-to-video
 pip install -r requirements.txt
-pip install fastapi uvicorn python-multipart python-dotenv
+pip install fastapi uvicorn python-multipart python-dotenv comtypes
 ```
 
-### Configure
+Then set up your API key:
 
-```bash
-cp .env.example .env
-# Edit .env and add your Gemini API key
-```
+1. In the `ppt-to-video` folder, find the file `.env.example`
+2. Make a copy and rename it to `.env`
+3. Open `.env` with Notepad and replace `your-gemini-api-key` with your actual key
+4. Save and close
 
-### Run
+## How to Start
+
+Every time you want to use the app, open a terminal in the `ppt-to-video` folder and run:
 
 ```bash
 python -m uvicorn app:app --port 8765
 ```
 
-Open **http://localhost:8765** in your browser.
+Then open your browser and go to **http://localhost:8765**
 
-## Narration Options
-
-| Option | How | Best for |
-|--------|-----|----------|
-| **Use notes** | Copies your PowerPoint speaker notes as-is | When you already wrote a script |
-| **Generate** | AI writes narration from slide content | When you want a fresh script |
-| **Manual** | Type directly in the text box | Full control |
-
-You can mix and match — use notes for some slides, generate for others, and edit any of them before creating audio.
-
-## Tech Stack
-
-- **FastAPI** — web server
-- **python-pptx** — slide extraction
-- **Claude Code CLI** — narration generation
-- **Google Gemini TTS** — text-to-speech
-- **FFmpeg** — video composition
+To stop the app, press `Ctrl+C` in the terminal.
