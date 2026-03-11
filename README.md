@@ -43,30 +43,18 @@ No credit card needed. The free plan is more than enough for personal use.
 
 ## Installation
 
-Open a terminal (Command Prompt or PowerShell) and run these commands one by one:
+1. Download or clone this project:
+   ```bash
+   git clone https://github.com/nmnhut-it/ppt-to-video.git
+   ```
+2. Open the `ppt-to-video` folder
+3. Double-click **`install.bat`** — it will check and install everything for you
+4. When prompted, open the `.env` file with Notepad and paste your Gemini API key
 
-```bash
-git clone https://github.com/nmnhut-it/ppt-to-video.git
-cd ppt-to-video
-pip install -r requirements.txt
-pip install fastapi uvicorn python-multipart python-dotenv comtypes
-```
-
-Then set up your API key:
-
-1. In the `ppt-to-video` folder, find the file `.env.example`
-2. Make a copy and rename it to `.env`
-3. Open `.env` with Notepad and replace `your-gemini-api-key` with your actual key
-4. Save and close
+That's it!
 
 ## How to Start
 
-Every time you want to use the app, open a terminal in the `ppt-to-video` folder and run:
-
-```bash
-python -m uvicorn app:app --port 8765
-```
-
-Then open your browser and go to **http://localhost:8765**
-
-To stop the app, press `Ctrl+C` in the terminal.
+1. Double-click **`start.bat`**
+2. Open **http://localhost:8765** in your browser
+3. To stop, press `Ctrl+C` in the terminal window
